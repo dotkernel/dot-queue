@@ -33,9 +33,6 @@ class DatabaseAdapter extends AbstractAdapter
     /** @var string  */
     protected $table = 'jobs';
 
-    /** @var string  */
-    protected $failedTable = 'failed_jobs';
-
     /**
      * DatabaseAdapter constructor.
      * @param array|null $options
@@ -48,10 +45,6 @@ class DatabaseAdapter extends AbstractAdapter
 
         if (isset($options['table'])) {
             $this->setTable($options['table']);
-        }
-
-        if (isset($options['failed_table'])) {
-            $this->setTable($options['failed_table']);
         }
     }
 
