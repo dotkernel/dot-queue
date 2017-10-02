@@ -152,7 +152,7 @@ $ php dot help queue:consume
 ```
 
 Useful consumer options
-* `--all` - consume all defined queue, in a round robin fashion
+* `--all` - consume all defined queues, in a round robin fashion
 * `--queues=` - comma separated list of queues to consume
 * `--max-runtime=` - run the consumer only the specified number of seconds
 * `--max-jobs=` - run the consumer until the specified number of jobs have been processed(this includes also the failed jobs)
