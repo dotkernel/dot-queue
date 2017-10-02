@@ -1,0 +1,42 @@
+<?php
+
+return [
+    'dot_queue' => [
+        'default_queue' => 'queue_name',
+
+        'failed_job_provider' => [
+            // these options are specific to the provider used
+            // we give here the database failed job provider options
+            'db_adapter' => 'database',
+            'table' => 'failed_jobs',
+        ],
+
+        'adapter_manager' => [],
+        'adapters' => [
+            'database' => [
+                'type' => \Dot\Queue\Adapter\DatabaseAdapter::class,
+                'options' => [
+                    // configured zend db service name adapter
+                    'db_adapter' => 'database',
+                    'table' => 'jobs',
+                    'failed_table' => 'failed_jobs'
+                ],
+                // other adapters...
+            ]
+        ],
+
+        'queue_manager' => [],
+        'queues' => [
+            'queue_name' => [
+                // 'type' => \Dot\Queue\Queue\PersistentQueue::class,
+                'options' => [
+                    'adapter' => 'database',
+                    // after how many seconds, failed job will be attempted again
+                    'retry_after' => 60,
+                    // maybe other queue options later
+                ]
+            ],
+            // other queues...
+        ]
+    ]
+];

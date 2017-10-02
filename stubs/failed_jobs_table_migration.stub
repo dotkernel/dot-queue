@@ -1,0 +1,20 @@
+<?php
+
+namespace {{NAMESPACE}};
+
+use Phinx\Db\Adapter\MysqlAdapter;
+use Phinx\Migration\AbstractMigration;
+
+class Create{{TABLE_CLASS_NAME}}Table extends AbstractMigration
+{
+    public function change()
+    {
+        $table = $this->table('{{TABLE_NAME}}', ['id' => false, 'primary_key' => 'uuid']);
+        $table->addColumn('uuid', 'string', ['limit' => 150])
+            ->addColumn('queue', 'string', ['limit' => 150])
+            ->addColumn('payload', 'text', ['limit' => MysqlAdapter::TEXT_LONG])
+            ->addColumn('exception', 'text', ['limit' => MysqlAdapter::TEXT_LONG])
+            ->addColumn('failedAt', 'timestamp', ['null' => true, 'default' => 'CURRENT_TIMESTAMP'])
+            ->create();
+    }
+}
