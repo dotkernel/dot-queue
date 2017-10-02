@@ -186,3 +186,6 @@ We provide several commands to help you manage the failed jobs
 * `php dot queue:flush [--queue=]` remove all failed jobs, optionally filtered by queue name
 * `php dot queue:forget <uuid>` remove the job with specified ID from the failed job list
 * `php dot queue:retry [<uuid>] [--queue]` re-dispatch a job back into its queue, for retrying. If no ID given, retry all failed jobs or filtered by queue
+
+
+## @TODO - QUEUE EVENTS
