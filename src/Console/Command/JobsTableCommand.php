@@ -46,7 +46,8 @@ class JobsTableCommand extends AbstractCommand
         );
 
         $filename = getcwd() . '/' . $path . '/';
-        $filename .= (microtime(true) * 10000) . '_create_' . $tableName . '_table.php';
+        $timestamp = \date('YmdHis', time());
+        $filename .= $timestamp . '_create_' . $tableName . '_table.php';
         file_put_contents($filename, $file);
         $console->writeLine("Migration file $filename created");
         return 0;
