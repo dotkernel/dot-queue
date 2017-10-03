@@ -73,8 +73,10 @@ class DatabaseAdapter extends AbstractAdapter
 
         $stmt = $sql->prepareStatementForSqlObject($select);
         $result = $stmt->execute();
+        $result->next();
         if ($result->valid()) {
-            return (int) $result[0]['num'];
+            $row = $result->current();
+            return (int) $row['num'];
         }
 
         return 0;
@@ -105,8 +107,8 @@ class DatabaseAdapter extends AbstractAdapter
     protected function createRecord(QueueInterface $queue, JobInterface $job): array
     {
         $currentTime = time();
-        $availableAt = \date('Y-m-d H:i:s', $currentTime + $job->getDelay());
-        $createdAt = \date('Y-m-d H:i:s', $currentTime);
+        $availableAt = $currentTime + $job->getDelay();
+        $createdAt = $currentTime;
 
         $record = [
             'uuid' => $job->getUUID(),
@@ -155,12 +157,12 @@ class DatabaseAdapter extends AbstractAdapter
                     ->NEST
                         ->NEST
                             ->isNull('reservedAt')->AND
-                            ->lessThanOrEqualTo('availableAt', \date('Y-m-d H:i:s', $currentTime))
+                            ->lessThanOrEqualTo('availableAt', $currentTime)
                         ->UNNEST
                         ->OR
                         ->lessThanOrEqualTo(
                             'reservedAt',
-                            \date('Y-m-d H:i:s', $currentTime - $queue->getRetryAfter())
+                            $currentTime - $queue->getRetryAfter()
                         )
                     ->UNNEST;
             })
@@ -182,7 +184,7 @@ class DatabaseAdapter extends AbstractAdapter
                 ->where(['uuid' => $job->getUUID()])
                 ->set([
                     'payload' => $queue->getQueueManager()->createPayload($job),
-                    'reservedAt' => \date('Y-m-d H:i:s', time())
+                    'reservedAt' => time()
                 ]);
             $sql->prepareStatementForSqlObject($update)->execute();
             return $job;

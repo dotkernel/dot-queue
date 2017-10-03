@@ -17,7 +17,8 @@ class Create{{TABLE_CLASS_NAME}}Table extends AbstractMigration
             ->addColumn('queue', 'string', ['limit' => 150])
             ->addColumn('payload', 'text', ['limit' => MysqlAdapter::TEXT_LONG])
             ->addColumn('exception', 'text', ['limit' => MysqlAdapter::TEXT_LONG])
-            ->addColumn('failedAt', 'timestamp', ['null' => true, 'default' => 'CURRENT_TIMESTAMP'])
+            ->addColumn('failedAt', 'integer', ['signed' => false])
+            ->addIndex(['queue'])
             ->create();
     }
 }
