@@ -110,7 +110,7 @@ class ConfigProvider
                 ],
                 [
                     'name' => 'queue:flush',
-                    'route' => '[--queue]',
+                    'route' => '[--queue=]',
                     'short_description' => 'Flush all failed jobs from storage',
                     'options_descriptions' => [
                         '--queue' => 'Flush failed jobs only from the specified queue name'

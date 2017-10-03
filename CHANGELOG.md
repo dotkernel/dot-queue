@@ -13,7 +13,7 @@
 * Nothing
 
 ### Fixed
-* Nothing
+* queue:flush command parameter
 
 
 ## 0.1.2 - 2017-10-03
