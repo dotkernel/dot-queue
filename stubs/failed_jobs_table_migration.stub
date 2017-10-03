@@ -9,8 +9,11 @@ class Create{{TABLE_CLASS_NAME}}Table extends AbstractMigration
 {
     public function change()
     {
-        $table = $this->table('{{TABLE_NAME}}', ['id' => false, 'primary_key' => 'uuid']);
-        $table->addColumn('uuid', 'string', ['limit' => 150])
+        $table = $this->table(
+            '{{TABLE_NAME}}',
+            ['id' => false, 'primary_key' => 'uuid', 'collation' => 'utf8mb4_general_ci']
+        );
+        $table->addColumn('uuid', 'char', ['limit' => 36, 'collation' => 'ascii_general_ci'])
             ->addColumn('queue', 'string', ['limit' => 150])
             ->addColumn('payload', 'text', ['limit' => MysqlAdapter::TEXT_LONG])
             ->addColumn('exception', 'text', ['limit' => MysqlAdapter::TEXT_LONG])

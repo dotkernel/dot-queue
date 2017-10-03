@@ -1,3 +1,21 @@
+## 0.1.2 - 2017-10-03
+
+### Changed
+* small optimization on the uuid table columns
+
+### Added
+* Nothing
+
+### Deprecated
+* Nothing
+
+### Removed
+* Nothing
+
+### Fixed
+* Nothing
+
+
 ## 0.1.1 - 2017-10-02
 
 ### Changed
