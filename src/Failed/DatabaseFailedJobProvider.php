@@ -73,7 +73,7 @@ class DatabaseFailedJobProvider implements FailedJobProviderInterface
             'queue' => $job->getQueue()->getName(),
             'payload' => $queue->getQueueManager()->createPayload($job),
             'exception' => $e,
-            'failedAt' => \date('Y-m-d H:i:s', time())
+            'failedAt' => time()
         ];
 
         $insert = $this->getSql()->insert($this->getTable())

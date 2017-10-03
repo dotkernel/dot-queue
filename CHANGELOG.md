@@ -1,3 +1,21 @@
+## 0.2.0 - 2017-10-03
+
+### Changed
+* table structure and column types for database
+
+### Added
+* Nothing
+
+### Deprecated
+* Nothing
+
+### Removed
+* Nothing
+
+### Fixed
+* queue:flush command parameter
+
+
 ## 0.1.2 - 2017-10-03
 
 ### Changed
