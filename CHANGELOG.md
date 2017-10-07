@@ -1,3 +1,21 @@
+## 0.2.1 - 2017-10-07
+
+### Changed
+* manually filter queue:consume options
+
+### Added
+* Nothing
+
+### Deprecated
+* Nothing
+
+### Removed
+* config commands options filters
+
+### Fixed
+* config could not be cached due to filter definitions
+
+
 ## 0.2.0 - 2017-10-03
 
 ### Changed

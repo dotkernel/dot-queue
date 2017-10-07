@@ -60,11 +60,27 @@ class ConsumeCommand extends AbstractCommand
     {
         $opts = $route->getMatches();
         $options = [];
-        foreach ($opts as $name => $value) {
-            $name = str_replace('-', '_', $name);
-            $options[$name] = $value;
+        if (isset($opts['queues'])) {
+            $options['queues'] = \explode(',', $opts['queues']);
         }
-
+        if (isset($opts['max-runtime'])) {
+            $options['maxRuntime'] = (int)$opts['max-runtime'];
+        }
+        if (isset($opts['max-jobs'])) {
+            $options['maxJobs'] = (int)$opts['max-jobs'];
+        }
+        if (isset($opts['memory-limit'])) {
+            $options['memoryLimit'] = (int)$opts['memory-limit'];
+        }
+        if (isset($opts['sleep'])) {
+            $options['sleep'] = (int)$opts['sleep'];
+        }
+        if (isset($opts['stop-on-error'])) {
+            $options['stopOnError'] = (bool)$opts['stop-on-error'];
+        }
+        if (isset($opts['stop-on-empty'])) {
+            $options['stopOnEmpty'] = (bool)$opts['stop-on-empty'];
+        }
         if (isset($opts['all']) && $opts['all']) {
             $options['queues'] = ConsumerOptions::QUEUES_ALL;
         }

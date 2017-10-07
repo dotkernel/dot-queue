@@ -27,9 +27,7 @@ use Dot\Queue\Factory\QueueOptionsFactory;
 use Dot\Queue\Failed\FailedJobProviderInterface;
 use Dot\Queue\Options\QueueOptions;
 use Dot\Queue\Queue\QueueManager;
-use Zend\Filter\ToInt;
 use Zend\ServiceManager\Factory\InvokableFactory;
-use ZF\Console\Filter\Explode;
 
 /**
  * Class ConfigProvider
@@ -87,15 +85,6 @@ class ConfigProvider
                         '--sleep' => 'Seconds to sleep the consumer worker if queue is empty',
                         '--stop-on-error' => 'Flag indicating the consumer to stop if an error has occurred',
                         '--stop-on-empty' => 'Flag indicating the consumer to stop if queues are empty',
-                    ],
-                    'filters' => [
-                        'queues' => new Explode(','),
-                        'max-runtime' => new ToInt(),
-                        'max-jobs' => new ToInt(),
-                        'memory-limit' => new ToInt(),
-                        'sleep' => new ToInt(),
-                    ],
-                    'defaults' => [
                     ],
                     'handler' => ConsumeCommand::class,
                 ],
