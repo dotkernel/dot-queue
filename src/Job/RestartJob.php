@@ -19,7 +19,7 @@ class RestartJob extends AbstractJob
     protected $maxAttempts = 1;
 
     /** @var int  */
-    protected $priority = PHP_INT_MAX;
+    protected $priority = 999999;
 
     /**
      * Terminate the queue consumer this job is running onto
