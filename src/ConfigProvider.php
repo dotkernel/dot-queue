@@ -93,7 +93,7 @@ class ConfigProvider
                 ],
                 [
                     'name' => 'queue:restart',
-                    'route' => '[--queues]',
+                    'route' => '[--queues=]',
                     'short_description' => 'Restart all queues or optionally specified queues',
                     'description' => 'Create high-priority restart jobs that will restart all or specified queues',
                     'options_descriptions' => [
