@@ -50,6 +50,12 @@ abstract class AbstractJob implements JobInterface, \JsonSerializable
     /** @var  QueueManager|string */
     protected $queueManager;
 
+    /** @var bool  */
+    protected $released = false;
+
+    /** @var bool  */
+    protected $deleted = false;
+
     /**
      * AbstractJob constructor.
      */
@@ -265,6 +271,7 @@ abstract class AbstractJob implements JobInterface, \JsonSerializable
      */
     public function release(int $delay = 0): JobInterface
     {
+        $this->released = true;
         $this->delete();
 
         $this->setDelay($delay + $this->getQueue()->getRetryAfter());
@@ -276,6 +283,7 @@ abstract class AbstractJob implements JobInterface, \JsonSerializable
      */
     public function delete()
     {
+        $this->deleted = true;
         $this->getQueue()->remove($this);
     }
 
@@ -283,16 +291,6 @@ abstract class AbstractJob implements JobInterface, \JsonSerializable
      * Process the job
      */
     abstract public function process();
-
-    /**
-     * @param $e
-     */
-    abstract public function error($e);
-
-    /**
-     * @param \Exception|\Throwable $e
-     */
-    abstract public function failed($e);
 
     /**
      * @return array
@@ -309,6 +307,42 @@ abstract class AbstractJob implements JobInterface, \JsonSerializable
             'timeout' => $this->getTimeout(),
             'data' => $this->data,
         ];
+    }
+
+    /**
+     * @return bool
+     */
+    public function isReleased(): bool
+    {
+        return $this->released;
+    }
+
+    /**
+     * @param bool $released
+     * @return AbstractJob
+     */
+    public function setReleased(bool $released): AbstractJob
+    {
+        $this->released = $released;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDeleted(): bool
+    {
+        return $this->deleted;
+    }
+
+    /**
+     * @param bool $deleted
+     * @return AbstractJob
+     */
+    public function setDeleted(bool $deleted): AbstractJob
+    {
+        $this->deleted = $deleted;
+        return $this;
     }
 
     /**

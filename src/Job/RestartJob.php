@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Dot\Queue\Job;
 
+use Dot\Queue\Exception\ShouldStopException;
+
 /**
  * Class RestartJob
  * @package Dot\Queue\Job
@@ -27,7 +29,7 @@ class RestartJob extends AbstractJob
      */
     public function process()
     {
-        exit(0);
+        throw new ShouldStopException('Force restart queues');
     }
 
     /**

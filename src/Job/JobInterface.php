@@ -144,6 +144,16 @@ interface JobInterface
     public function failed($e);
 
     /**
+     * @return bool
+     */
+    public function isReleased(): bool;
+
+    /**
+     * @return bool
+     */
+    public function isDeleted(): bool;
+
+    /**
      * @return QueueInterface
      */
     public function getQueue(): QueueInterface;

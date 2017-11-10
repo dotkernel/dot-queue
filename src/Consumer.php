@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Dot\Queue;
 
 use Dot\Queue\Exception\MaxAttemptsExceededException;
+use Dot\Queue\Exception\ShouldStopException;
 use Dot\Queue\Failed\FailedJobProviderInterface;
 use Dot\Queue\Job\JobInterface;
 use Dot\Queue\Options\QueueOptions;
@@ -166,6 +167,8 @@ class Consumer
             $this->runJob($job);
             // acknowledge that the job successfully ran
             $queue->acknowledge($job);
+        } catch (ShouldStopException $e) {
+            $this->shutdown = true;
         } catch (MaxAttemptsExceededException $e) {
             $this->handleJobFailed($job, $e);
         } catch (\Exception $e) {
@@ -185,7 +188,7 @@ class Consumer
         // mark job as failed if already exceeds max attempts
         // this could happen if the job constantly timeouts, without the job raising exceptions from inside
         if ($job->getMaxAttempts() > 0 && $job->getAttempts() > $job->getMaxAttempts()) {
-            throw new MaxAttemptsExceededException('Job exceeded maximum attempts, due to timeouts');
+            throw new MaxAttemptsExceededException('Job exceeded maximum attempts due to timeouts');
         }
 
         $job->process();
@@ -210,8 +213,13 @@ class Consumer
 
         // TODO: trigger job exception event
 
-        // release the job back into the queue, if there's attempts left
-        $job->release();
+        // call the error method on the job, for possible cleanup
+        $job->error($e);
+
+        if (!$job->isReleased() && !$job->isDeleted()) {
+            // release the job back into the queue, if there's attempts left
+            $job->release();
+        }
 
         if ($this->options->isStopOnError()) {
             throw $e;
@@ -225,8 +233,13 @@ class Consumer
     protected function handleJobFailed(JobInterface $job, $e)
     {
         try {
-            $job->delete();
-            // call the failed method of the job for cleaning up
+            if (!$job->isReleased() && !$job->isDeleted()) {
+                $job->delete();
+                // call the failed method of the job for cleaning up
+            }
+
+            // call the error method, then the failed method, for cleanup
+            $job->error($e);
             $job->failed($e);
         } finally {
             try {
