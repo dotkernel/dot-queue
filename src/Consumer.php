@@ -13,6 +13,7 @@ use Dot\Queue\Exception\MaxAttemptsExceededException;
 use Dot\Queue\Exception\ShouldStopException;
 use Dot\Queue\Failed\FailedJobProviderInterface;
 use Dot\Queue\Job\JobInterface;
+use Dot\Queue\Job\RestartJob;
 use Dot\Queue\Options\QueueOptions;
 use Dot\Queue\Queue\QueueInterface;
 use Dot\Queue\Queue\QueueManager;
@@ -169,8 +170,13 @@ class Consumer
             $queue->acknowledge($job);
         } catch (ShouldStopException $e) {
             $this->shutdown = true;
+            if ($job instanceof RestartJob) {
+                $queue->acknowledge($job);
+            } else {
+                $this->handleJobException($e->getPrevious() ? $e->getPrevious() : $e, $job);
+            }
         } catch (MaxAttemptsExceededException $e) {
-            $this->handleJobFailed($job, $e);
+            $this->handleJobFailed($e->getPrevious() ? $e->getPrevious() : $e, $job);
         } catch (\Exception $e) {
             $this->handleJobException($e, $job);
         } catch (\Throwable $e) {
@@ -204,8 +210,8 @@ class Consumer
     {
         if ($job->getMaxAttempts() > 0 && $job->getAttempts() >= $job->getMaxAttempts()) {
             $this->handleJobFailed(
-                $job,
-                new MaxAttemptsExceededException('Job exceeded its maximum attempts', $e)
+                new MaxAttemptsExceededException('Job exceeded its maximum attempts', $e),
+                $job
             );
 
             return;
@@ -230,7 +236,7 @@ class Consumer
      * @param JobInterface $job
      * @param $e
      */
-    protected function handleJobFailed(JobInterface $job, $e)
+    protected function handleJobFailed($e, JobInterface $job)
     {
         try {
             if (!$job->isReleased() && !$job->isDeleted()) {
