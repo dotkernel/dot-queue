@@ -13,6 +13,7 @@ use Dot\Queue\Exception\RuntimeException;
 use Dot\Queue\Job\JobInterface;
 use Dot\Queue\Queue\QueueInterface;
 use Dot\Queue\Queue\QueueManager;
+use Dot\Queue\UuidOrderedTimeBinaryCodec;
 use Zend\Db\Adapter\Adapter;
 use Zend\Db\ResultSet\ResultSet;
 use Zend\Db\Sql\Sql;
@@ -69,10 +70,10 @@ class DatabaseFailedJobProvider implements FailedJobProviderInterface
     public function log(QueueInterface $queue, JobInterface $job, $e)
     {
         $data = [
-            'uuid' => $job->getUUID(),
+            'uuid' => UuidOrderedTimeBinaryCodec::encode($job->getUUID()),
             'queue' => $job->getQueue()->getName(),
             'payload' => $queue->getQueueManager()->createPayload($job),
-            'exception' => $e,
+            'exception' => $e->getTraceAsString(),
             'failedAt' => time()
         ];
 
@@ -110,13 +111,13 @@ class DatabaseFailedJobProvider implements FailedJobProviderInterface
     }
 
     /**
-     * @param $id
+     * @param $uuid
      * @return JobInterface|null
      */
-    public function find($id): ?JobInterface
+    public function find($uuid): ?JobInterface
     {
         $select = $this->getSql()->select($this->getTable())
-            ->where(['uuid' => $id]);
+            ->where(['uuid' => UuidOrderedTimeBinaryCodec::encode($uuid)]);
 
         $r = $this->getSql()->prepareStatementForSqlObject($select)->execute();
         $result = new ResultSet();
@@ -132,12 +133,12 @@ class DatabaseFailedJobProvider implements FailedJobProviderInterface
     }
 
     /**
-     * @param $id
+     * @param $uuid
      */
-    public function forget($id)
+    public function forget($uuid)
     {
         $delete = $this->getSql()->delete($this->getTable())
-            ->where(['uuid' => $id]);
+            ->where(['uuid' => UuidOrderedTimeBinaryCodec::encode($uuid)]);
         $this->getSql()->prepareStatementForSqlObject($delete)->execute();
     }
 
