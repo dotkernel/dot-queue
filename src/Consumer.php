@@ -17,6 +17,7 @@ use Dot\Queue\Job\RestartJob;
 use Dot\Queue\Options\QueueOptions;
 use Dot\Queue\Queue\QueueInterface;
 use Dot\Queue\Queue\QueueManager;
+use Psr\Log\LogLevel;
 
 /**
  * Class Worker
@@ -73,11 +74,15 @@ class Consumer
         $this->options = $options;
         $this->listenForSignals();
 
+        $this->queueManager->log(LogLevel::INFO, 'starting queue ' . $queue->getName());
+
         $this->startTime = microtime(true);
         $this->processedJobs = 0;
         while ($this->tick($queue)) {
             // NO-OP
         }
+
+        $this->queueManager->log(LogLevel::INFO, 'stopping queue ' . $queue->getName());
     }
 
     /**
@@ -102,6 +107,8 @@ class Consumer
         }
 
         if (!$job = $this->getNextJob($queue)) {
+            $this->queueManager->log(LogLevel::INFO, 'queue ' . $queue->getName() . ' is empty');
+
             if ($this->options->isStopOnEmpty()) {
                 return false;
             }
@@ -148,10 +155,12 @@ class Consumer
     {
         if ($this->options->getMaxRuntime() > 0
             && microtime(true) > ($this->startTime + $this->options->getMaxRuntime())) {
+            $this->queueManager->log(LogLevel::WARNING, 'maximum runtime exceeded, stopping queue');
             return true;
         }
 
         if ($this->memoryExceeded($this->options->getMemoryLimit())) {
+            $this->queueManager->log(LogLevel::WARNING, 'memory limit exceeded, stopping queue');
             return true;
         }
 
@@ -164,6 +173,11 @@ class Consumer
      */
     public function process(JobInterface $job, QueueInterface $queue)
     {
+        $this->queueManager->log(
+            LogLevel::INFO,
+            "starting job {$job->getUUID()->toString()}, queue {$queue->getName()}"
+        );
+
         try {
             $this->runJob($job);
             // acknowledge that the job successfully ran
@@ -217,6 +231,9 @@ class Consumer
             return;
         }
 
+        $this->queueManager->log(LogLevel::ERROR, "error in job {$job->getUUID()->toString()}");
+        $this->queueManager->logException($e);
+
         // TODO: trigger job exception event
 
         // call the error method on the job, for possible cleanup
@@ -243,6 +260,9 @@ class Consumer
                 $job->delete();
                 // call the failed method of the job for cleaning up
             }
+
+            $this->queueManager->log(LogLevel::ERROR, "job {$job->getUUID()->toString()} has failed");
+            $this->queueManager->logException($e);
 
             // call the error method, then the failed method, for cleanup
             $job->error($e);

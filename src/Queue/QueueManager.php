@@ -9,10 +9,13 @@ declare(strict_types=1);
 
 namespace Dot\Queue\Queue;
 
+use Dot\Queue\Exception\InvalidArgumentException;
 use Dot\Queue\Exception\RuntimeException;
 use Dot\Queue\Factory\PersistentQueueFactory;
 use Dot\Queue\Job\JobInterface;
 use Dot\Queue\Options\QueueOptions;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Zend\ServiceManager\AbstractPluginManager;
 use Zend\ServiceManager\Factory\InvokableFactory;
 use Zend\ServiceManager\ServiceManager;
@@ -32,6 +35,9 @@ class QueueManager extends AbstractPluginManager
     /** @var QueueInterface[] */
     protected $queues = [];
 
+    /** @var  LoggerInterface */
+    protected $logger;
+
     /** @var string  */
     protected $instanceOf = QueueInterface::class;
 
@@ -46,12 +52,18 @@ class QueueManager extends AbstractPluginManager
      * @param QueueOptions $options
      * @param null $configInstanceOrParentLocator
      * @param array $config
+     * @param LoggerInterface|null $logger
      */
-    public function __construct(QueueOptions $options, $configInstanceOrParentLocator = null, array $config = [])
-    {
+    public function __construct(
+        QueueOptions $options,
+        $configInstanceOrParentLocator = null,
+        array $config = [],
+        LoggerInterface $logger = null
+    ) {
         parent::__construct($configInstanceOrParentLocator, $config);
         $this->container = $configInstanceOrParentLocator;
         $this->options = $options;
+        $this->logger = $logger;
     }
 
     /**
@@ -196,5 +208,40 @@ class QueueManager extends AbstractPluginManager
     {
         $this->options = $options;
         return $this;
+    }
+
+    /**
+     * @param $level
+     * @param string $message
+     */
+    public function log($level, string $message)
+    {
+        if (!$this->logger) {
+            return;
+        }
+
+
+        $context = [
+            'DATETIME' => \date('Y-m-d H:i:s', \time()),
+            'LEVEL' => strtoupper($level),
+            'MESSAGE' => $message
+        ];
+        $this->logger->log($level, '[{DATETIME}] queues.{LEVEL}: {MESSAGE}', $context);
+    }
+
+    /**
+     * @param $exception
+     */
+    public function logException($exception)
+    {
+        if (!$this->logger) {
+            return;
+        }
+
+        if (!$exception instanceof \Exception && !$exception instanceof \Throwable) {
+            throw new InvalidArgumentException('logException expects an exception or throwable as parameter');
+        }
+
+        $this->log(LogLevel::ERROR, $exception->getTraceAsString());
     }
 }
