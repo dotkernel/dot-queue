@@ -293,6 +293,22 @@ abstract class AbstractJob implements JobInterface, \JsonSerializable
     abstract public function process();
 
     /**
+     * @param \Exception|\Throwable $e
+     */
+    public function error($e)
+    {
+        // TODO: Implement error() method.
+    }
+
+    /**
+     * @param \Exception|\Throwable $e
+     */
+    public function failed($e)
+    {
+        // TODO: Implement failed() method.
+    }
+
+    /**
      * @return array
      */
     public function jsonSerialize()

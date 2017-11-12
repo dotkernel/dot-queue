@@ -134,7 +134,7 @@ interface JobInterface
     public function process();
 
     /**
-     * @param $e
+     * @param \Exception|\Throwable $e
      */
     public function error($e);
 

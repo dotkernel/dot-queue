@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Dot\Queue\Job;
 
 use Dot\Queue\Exception\ShouldStopException;
+use Psr\Log\LogLevel;
 
 /**
  * Class RestartJob
@@ -37,11 +38,21 @@ class RestartJob extends AbstractJob
      */
     public function error($e)
     {
-        \error_log('Could not restart queue: ' . $this->getQueue()->getName() . ', error: ' . $e->getMessage());
+        $this->getQueueManager()->log(LogLevel::ERROR, sprintf(
+            'Could not restart queue `%s` due to error',
+            $this->getQueue()->getName()
+        ));
+        $this->getQueueManager()->log(LogLevel::ERROR, $e->getTraceAsString());
     }
 
+    /**
+     * @param \Exception|\Throwable $e
+     */
     public function failed($e)
     {
-        \error_log('Queue: ' . $this->getQueue()->getName() . ', failed to restart with error: ' . $e->getMessage());
+        $this->getQueueManager()->log(LogLevel::ERROR, sprintf(
+            'Restart job failed due to error',
+            $this->getQueue()->getName()
+        ));
     }
 }
