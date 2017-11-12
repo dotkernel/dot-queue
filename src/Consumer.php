@@ -138,11 +138,16 @@ class Consumer
         try {
             return $queue->dequeue();
         } catch (\Exception $e) {
-            // TODO: log error
-
+            $this->queueManager->log(
+                LogLevel::ERROR,
+                "error fetching next job from queue `{$queue->getName()}`"
+            );
             return null;
         } catch (\Throwable $e) {
-            // TODO: log error
+            $this->queueManager->log(
+                LogLevel::ERROR,
+                "error fetching next job from queue `{$queue->getName()}`"
+            );
 
             return null;
         }
@@ -185,6 +190,10 @@ class Consumer
         } catch (ShouldStopException $e) {
             $this->shutdown = true;
             if ($job instanceof RestartJob) {
+                $this->queueManager->log(
+                    LogLevel::INFO,
+                    "restart command processed for queue `{$queue->getName()}`"
+                );
                 $queue->acknowledge($job);
             } else {
                 $this->handleJobException($e->getPrevious() ? $e->getPrevious() : $e, $job);
@@ -270,9 +279,16 @@ class Consumer
             $job->failed($e);
         } finally {
             try {
+                $this->queueManager->log(
+                    LogLevel::INFO,
+                    "moving job {$job->getUUID()->toString()} to failed jobs list"
+                );
                 $this->failedJobProvider->log($job->getQueue(), $job, $e);
             } catch (\Exception $e) {
-                // NO-OP
+                $this->queueManager->log(
+                    LogLevel::ERROR,
+                    "error moving job {$job->getUUID()->toString()} to failed jobs list"
+                );
             }
 
             // TODO: trigger job failed event
