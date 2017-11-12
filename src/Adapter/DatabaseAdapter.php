@@ -12,6 +12,7 @@ namespace Dot\Queue\Adapter;
 use Dot\Queue\Db\SelectDecorator;
 use Dot\Queue\Job\JobInterface;
 use Dot\Queue\Queue\QueueInterface;
+use Dot\Queue\UuidOrderedTimeBinaryCodec;
 use Zend\Db\Adapter\Adapter;
 use Zend\Db\Sql\Expression;
 use Zend\Db\Sql\Select;
@@ -111,7 +112,7 @@ class DatabaseAdapter extends AbstractAdapter
         $createdAt = $currentTime;
 
         $record = [
-            'uuid' => $job->getUUID(),
+            'uuid' => UuidOrderedTimeBinaryCodec::encode($job->getUUID()),
             'queue' => $queue->getName(),
             'priority' => $job->getPriority(),
             'payload' => $queue->getQueueManager()->createPayload($job),
@@ -181,7 +182,7 @@ class DatabaseAdapter extends AbstractAdapter
 
             $job->increment();
             $update = $sql->update($this->getTable())
-                ->where(['uuid' => $job->getUUID()])
+                ->where(['uuid' => UuidOrderedTimeBinaryCodec::encode($job->getUUID())])
                 ->set([
                     'payload' => $queue->getQueueManager()->createPayload($job),
                     'reservedAt' => time()
@@ -212,7 +213,7 @@ class DatabaseAdapter extends AbstractAdapter
 
         $sql = $this->getSql();
         $delete = $sql->delete($this->getTable())
-            ->where(['uuid' => $job->getUUID()]);
+            ->where(['uuid' => UuidOrderedTimeBinaryCodec::encode($job->getUUID())]);
         $sql->prepareStatementForSqlObject($delete)->execute();
     }
 

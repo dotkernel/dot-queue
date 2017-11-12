@@ -12,7 +12,10 @@ namespace Dot\Queue\Job;
 use Dot\Queue\Exception\RuntimeException;
 use Dot\Queue\Queue\QueueInterface;
 use Dot\Queue\Queue\QueueManager;
+use Dot\Queue\UuidOrderedTimeBinaryCodec;
+use Dot\Queue\UuidOrderedTimeGenerator;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 /**
  * Class Job
@@ -20,7 +23,7 @@ use Ramsey\Uuid\Uuid;
  */
 abstract class AbstractJob implements JobInterface, \JsonSerializable
 {
-    /** @var  string */
+    /** @var  UuidInterface */
     protected $uuid;
 
     /** @var  array */
@@ -30,7 +33,7 @@ abstract class AbstractJob implements JobInterface, \JsonSerializable
     protected $attempts = 0;
 
     /** @var int  */
-    protected $maxAttempts = 3;
+    protected $maxAttempts = 1;
 
     /** @var int  */
     protected $priority = 1;
@@ -47,60 +50,81 @@ abstract class AbstractJob implements JobInterface, \JsonSerializable
     /** @var  QueueManager|string */
     protected $queueManager;
 
+    /** @var bool  */
+    protected $released = false;
+
+    /** @var bool  */
+    protected $deleted = false;
+
     /**
-     * @param array $options
+     * AbstractJob constructor.
+     */
+    public function __construct()
+    {
+        $this->uuid = UuidOrderedTimeGenerator::generateUuid();
+    }
+
+    /**
+     * @param array $data
      * @return JobInterface
      */
-    public function setOptions(array $options = []): JobInterface
+    public function withData(array $data = []): JobInterface
     {
-        if (isset($options['uuid'])) {
-            $this->setUUID((string)$options['uuid']);
+        if (isset($data['uuid'])) {
+            $this->setUUID($data['uuid']);
         }
 
-        if (isset($options['attempts'])) {
-            $this->setAttempts((int)$options['attempts']);
+        if (isset($data['attempts'])) {
+            $this->setAttempts((int)$data['attempts']);
         }
 
-        if (isset($options['maxAttempts'])) {
-            $this->setMaxAttempts((int)$options['maxAttempts']);
+        if (isset($data['maxAttempts'])) {
+            $this->setMaxAttempts((int)$data['maxAttempts']);
         }
 
-        if (isset($options['priority'])) {
-            $this->setPriority((int)$options['priority']);
+        if (isset($data['priority'])) {
+            $this->setPriority((int)$data['priority']);
         }
 
-        if (isset($options['timeout'])) {
-            $this->setTimeout((int)$options['timeout']);
+        if (isset($data['timeout'])) {
+            $this->setTimeout((int)$data['timeout']);
         }
 
-        if (isset($options['queue'])) {
-            $this->setQueue($options['queue']);
+        if (isset($data['queue'])) {
+            $this->setQueue($data['queue']);
         }
 
-        if (isset($options['data']) && is_array($options['data'])) {
-            $this->data = $options['data'];
+        if (isset($data['data']) && is_array($data['data'])) {
+            $this->data = $data['data'];
         }
 
         return $this;
     }
 
     /**
-     * @return string
+     * @return UuidInterface
      */
-    public function getUUID(): string
+    public function getUUID(): UuidInterface
     {
         if (!$this->uuid) {
-            $this->uuid = Uuid::uuid4()->toString();
+            $this->uuid = UuidOrderedTimeGenerator::generateUuid();
         }
+
         return $this->uuid;
     }
 
     /**
-     * @param string $uuid
+     * @param mixed $uuid
      * @return JobInterface
      */
-    public function setUUID(string $uuid): JobInterface
+    public function setUUID($uuid): JobInterface
     {
+        if (is_string($uuid)) {
+            $uuid = Uuid::fromString($uuid);
+        }
+
+        $uuid = UuidOrderedTimeBinaryCodec::decode($uuid);
+
         $this->uuid = $uuid;
         return $this;
     }
@@ -247,6 +271,7 @@ abstract class AbstractJob implements JobInterface, \JsonSerializable
      */
     public function release(int $delay = 0): JobInterface
     {
+        $this->released = true;
         $this->delete();
 
         $this->setDelay($delay + $this->getQueue()->getRetryAfter());
@@ -258,6 +283,7 @@ abstract class AbstractJob implements JobInterface, \JsonSerializable
      */
     public function delete()
     {
+        $this->deleted = true;
         $this->getQueue()->remove($this);
     }
 
@@ -269,7 +295,18 @@ abstract class AbstractJob implements JobInterface, \JsonSerializable
     /**
      * @param \Exception|\Throwable $e
      */
-    abstract public function failed($e);
+    public function error($e)
+    {
+        // TODO: Implement error() method.
+    }
+
+    /**
+     * @param \Exception|\Throwable $e
+     */
+    public function failed($e)
+    {
+        // TODO: Implement failed() method.
+    }
 
     /**
      * @return array
@@ -279,13 +316,49 @@ abstract class AbstractJob implements JobInterface, \JsonSerializable
         return [
             'class' => get_class($this),
             'queue' => $this->getQueue()->getName(),
-            'uuid' => $this->getUUID(),
+            'uuid' => $this->getUUID()->toString(),
             'attempts' => $this->getAttempts(),
             'maxAttempts' => $this->getMaxAttempts(),
             'priority' => $this->getPriority(),
             'timeout' => $this->getTimeout(),
             'data' => $this->data,
         ];
+    }
+
+    /**
+     * @return bool
+     */
+    public function isReleased(): bool
+    {
+        return $this->released;
+    }
+
+    /**
+     * @param bool $released
+     * @return AbstractJob
+     */
+    public function setReleased(bool $released): AbstractJob
+    {
+        $this->released = $released;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDeleted(): bool
+    {
+        return $this->deleted;
+    }
+
+    /**
+     * @param bool $deleted
+     * @return AbstractJob
+     */
+    public function setDeleted(bool $deleted): AbstractJob
+    {
+        $this->deleted = $deleted;
+        return $this;
     }
 
     /**

@@ -11,6 +11,7 @@ namespace Dot\Queue\Job;
 
 use Dot\Queue\Queue\QueueInterface;
 use Dot\Queue\Queue\QueueManager;
+use Ramsey\Uuid\UuidInterface;
 
 /**
  * Interface JobInterface
@@ -19,15 +20,15 @@ use Dot\Queue\Queue\QueueManager;
 interface JobInterface
 {
     /**
-     * @return string
+     * @return UuidInterface
      */
-    public function getUUID(): string;
+    public function getUUID(): UuidInterface;
 
     /**
-     * @param string $uuid
+     * @param mixed $uuid
      * @return JobInterface
      */
-    public function setUUID(string $uuid): JobInterface;
+    public function setUUID($uuid): JobInterface;
 
     /**
      * @param string $key
@@ -104,10 +105,10 @@ interface JobInterface
     public function setTimeout(int $timeout): JobInterface;
 
     /**
-     * @param array $options
+     * @param array $data
      * @return JobInterface
      */
-    public function setOptions(array $options = []): JobInterface;
+    public function withData(array $data = []): JobInterface;
 
     /**
      * @param null $queue
@@ -135,7 +136,22 @@ interface JobInterface
     /**
      * @param \Exception|\Throwable $e
      */
+    public function error($e);
+
+    /**
+     * @param \Exception|\Throwable $e
+     */
     public function failed($e);
+
+    /**
+     * @return bool
+     */
+    public function isReleased(): bool;
+
+    /**
+     * @return bool
+     */
+    public function isDeleted(): bool;
 
     /**
      * @return QueueInterface

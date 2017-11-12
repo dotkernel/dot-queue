@@ -13,6 +13,7 @@ use Dot\Queue\Exception\RuntimeException;
 use Dot\Queue\Factory\PersistentQueueFactory;
 use Dot\Queue\Job\JobInterface;
 use Dot\Queue\Options\QueueOptions;
+use Psr\Log\LoggerInterface;
 use Zend\ServiceManager\AbstractPluginManager;
 use Zend\ServiceManager\Factory\InvokableFactory;
 use Zend\ServiceManager\ServiceManager;
@@ -32,6 +33,9 @@ class QueueManager extends AbstractPluginManager
     /** @var QueueInterface[] */
     protected $queues = [];
 
+    /** @var  LoggerInterface */
+    protected $logger;
+
     /** @var string  */
     protected $instanceOf = QueueInterface::class;
 
@@ -46,12 +50,18 @@ class QueueManager extends AbstractPluginManager
      * @param QueueOptions $options
      * @param null $configInstanceOrParentLocator
      * @param array $config
+     * @param LoggerInterface|null $logger
      */
-    public function __construct(QueueOptions $options, $configInstanceOrParentLocator = null, array $config = [])
-    {
+    public function __construct(
+        QueueOptions $options,
+        $configInstanceOrParentLocator = null,
+        array $config = [],
+        LoggerInterface $logger = null
+    ) {
         parent::__construct($configInstanceOrParentLocator, $config);
         $this->container = $configInstanceOrParentLocator;
         $this->options = $options;
+        $this->logger = $logger;
     }
 
     /**
@@ -61,7 +71,7 @@ class QueueManager extends AbstractPluginManager
      */
     public function get($name, array $options = null)
     {
-        if (isset($this->queues[$name])) {
+        if (isset($this->queues[$name]) && empty($options)) {
             return $this->queues[$name];
         }
 
@@ -72,13 +82,17 @@ class QueueManager extends AbstractPluginManager
 
         $type = $queuesConfig[$name]['type'] ?? PersistentQueue::class;
 
-        $options['name'] = $name;
-        $options += $queuesConfig[$name]['options'];
+        $queueOptions = $options ?? [];
+        $queueOptions['name'] = $name;
+        $queueOptions += $queuesConfig[$name]['options'];
 
         /** @var QueueInterface $queue */
-        $queue = parent::get($type, $options);
+        $queue = parent::get($type, $queueOptions);
         $queue->setQueueManager($this);
-        $this->queues[$name] = $queue;
+
+        if (empty($options)) {
+            $this->queues[$name] = $queue;
+        }
 
         return $queue;
     }
@@ -92,15 +106,15 @@ class QueueManager extends AbstractPluginManager
     }
 
     /**
-     * @param string $jobClass
+     * @param string $className
      * @param array $options
      * @return JobInterface
      */
-    public function createJob(string $jobClass, array $options = []): JobInterface
+    public function createJob(string $className, array $options = []): JobInterface
     {
-        $job = $jobClass;
-        if ($this->container->has($jobClass)) {
-            $job = $this->container->build($jobClass);
+        $job = $className;
+        if ($this->container->has($className)) {
+            $job = $this->container->build($className);
         }
 
         if (is_string($job) && class_exists($job)) {
@@ -108,11 +122,11 @@ class QueueManager extends AbstractPluginManager
         }
 
         if (!$job instanceof JobInterface) {
-            throw new RuntimeException(sprintf('Could not create job `%s`', $jobClass));
+            throw new RuntimeException(sprintf('Could not create job `%s`', $className));
         }
 
         $job->setQueueManager($this)
-            ->setOptions($options);
+            ->withData($options);
 
         return $job;
     }
@@ -192,5 +206,19 @@ class QueueManager extends AbstractPluginManager
     {
         $this->options = $options;
         return $this;
+    }
+
+    /**
+     * @param $level
+     * @param string $message
+     * @param array $context
+     */
+    public function log($level, string $message, array $context = [])
+    {
+        if (!$this->logger) {
+            return;
+        }
+
+        $this->logger->log($level, $message, $context);
     }
 }

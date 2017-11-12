@@ -32,16 +32,16 @@ interface FailedJobProviderInterface
     public function findAll(string $queue = null): array;
 
     /**
-     * @param $id
+     * @param $uuid
      * @return JobInterface|null
      */
-    public function find($id): ?JobInterface;
+    public function find($uuid): ?JobInterface;
 
     /**
      * Delete a single failed job from storage
-     * @param $id
+     * @param $uuid
      */
-    public function forget($id);
+    public function forget($uuid);
 
     /**
      * Deletes all failed jobs from storage

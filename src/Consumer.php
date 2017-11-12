@@ -10,11 +10,14 @@ declare(strict_types=1);
 namespace Dot\Queue;
 
 use Dot\Queue\Exception\MaxAttemptsExceededException;
+use Dot\Queue\Exception\ShouldStopException;
 use Dot\Queue\Failed\FailedJobProviderInterface;
 use Dot\Queue\Job\JobInterface;
+use Dot\Queue\Job\RestartJob;
 use Dot\Queue\Options\QueueOptions;
 use Dot\Queue\Queue\QueueInterface;
 use Dot\Queue\Queue\QueueManager;
+use Psr\Log\LogLevel;
 
 /**
  * Class Worker
@@ -71,11 +74,15 @@ class Consumer
         $this->options = $options;
         $this->listenForSignals();
 
+        $this->queueManager->log(LogLevel::INFO, sprintf('starting queue `%s`', $queue->getName()));
+
         $this->startTime = microtime(true);
         $this->processedJobs = 0;
         while ($this->tick($queue)) {
             // NO-OP
         }
+
+        $this->queueManager->log(LogLevel::INFO, sprintf('stopping queue `%s`', $queue->getName()));
     }
 
     /**
@@ -100,6 +107,8 @@ class Consumer
         }
 
         if (!$job = $this->getNextJob($queue)) {
+            $this->queueManager->log(LogLevel::INFO, sprintf('queue `%s` is empty', $queue->getName()));
+
             if ($this->options->isStopOnEmpty()) {
                 return false;
             }
@@ -129,11 +138,16 @@ class Consumer
         try {
             return $queue->dequeue();
         } catch (\Exception $e) {
-            // TODO: log error
-
+            $this->queueManager->log(
+                LogLevel::ERROR,
+                "error fetching next job from queue `{$queue->getName()}`"
+            );
             return null;
         } catch (\Throwable $e) {
-            // TODO: log error
+            $this->queueManager->log(
+                LogLevel::ERROR,
+                "error fetching next job from queue `{$queue->getName()}`"
+            );
 
             return null;
         }
@@ -146,10 +160,12 @@ class Consumer
     {
         if ($this->options->getMaxRuntime() > 0
             && microtime(true) > ($this->startTime + $this->options->getMaxRuntime())) {
+            $this->queueManager->log(LogLevel::WARNING, 'maximum runtime exceeded, stopping queue');
             return true;
         }
 
         if ($this->memoryExceeded($this->options->getMemoryLimit())) {
+            $this->queueManager->log(LogLevel::WARNING, 'memory limit exceeded, stopping queue');
             return true;
         }
 
@@ -162,12 +178,28 @@ class Consumer
      */
     public function process(JobInterface $job, QueueInterface $queue)
     {
+        $this->queueManager->log(
+            LogLevel::INFO,
+            "starting job {$job->getUUID()->toString()} in queue {$queue->getName()}"
+        );
+
         try {
             $this->runJob($job);
             // acknowledge that the job successfully ran
             $queue->acknowledge($job);
+        } catch (ShouldStopException $e) {
+            $this->shutdown = true;
+            if ($job instanceof RestartJob) {
+                $this->queueManager->log(
+                    LogLevel::INFO,
+                    "restart command processed for queue `{$queue->getName()}`"
+                );
+                $queue->acknowledge($job);
+            } else {
+                $this->handleJobException($e->getPrevious() ? $e->getPrevious() : $e, $job);
+            }
         } catch (MaxAttemptsExceededException $e) {
-            $this->handleJobFailed($job, $e);
+            $this->handleJobFailed($e->getPrevious() ? $e->getPrevious() : $e, $job);
         } catch (\Exception $e) {
             $this->handleJobException($e, $job);
         } catch (\Throwable $e) {
@@ -185,7 +217,7 @@ class Consumer
         // mark job as failed if already exceeds max attempts
         // this could happen if the job constantly timeouts, without the job raising exceptions from inside
         if ($job->getMaxAttempts() > 0 && $job->getAttempts() > $job->getMaxAttempts()) {
-            throw new MaxAttemptsExceededException('Job exceeded maximum attempts, due to timeouts');
+            throw new MaxAttemptsExceededException('Job exceeded maximum attempts due to timeouts');
         }
 
         $job->process();
@@ -194,24 +226,33 @@ class Consumer
     }
 
     /**
-     * @param $e
+     * @param \Exception|\Throwable $e
      * @param JobInterface $job
+     * @throws \Exception|\Throwable
      */
     protected function handleJobException($e, JobInterface $job)
     {
         if ($job->getMaxAttempts() > 0 && $job->getAttempts() >= $job->getMaxAttempts()) {
             $this->handleJobFailed(
-                $job,
-                new MaxAttemptsExceededException('Job exceeded its maximum attempts', $e)
+                new MaxAttemptsExceededException('Job exceeded its maximum attempts', $e),
+                $job
             );
 
             return;
         }
 
+        $this->queueManager->log(LogLevel::ERROR, "error in job {$job->getUUID()->toString()}");
+        $this->queueManager->log(LogLevel::ERROR, $e->getTraceAsString());
+
         // TODO: trigger job exception event
 
-        // release the job back into the queue, if there's attempts left
-        $job->release();
+        // call the error method on the job, for possible cleanup
+        $job->error($e);
+
+        if (!$job->isReleased() && !$job->isDeleted()) {
+            // release the job back into the queue, if there's attempts left
+            $job->release();
+        }
 
         if ($this->options->isStopOnError()) {
             throw $e;
@@ -220,19 +261,34 @@ class Consumer
 
     /**
      * @param JobInterface $job
-     * @param $e
+     * @param \Exception|\Throwable $e
      */
-    protected function handleJobFailed(JobInterface $job, $e)
+    protected function handleJobFailed($e, JobInterface $job)
     {
         try {
-            $job->delete();
-            // call the failed method of the job for cleaning up
+            if (!$job->isReleased() && !$job->isDeleted()) {
+                $job->delete();
+                // call the failed method of the job for cleaning up
+            }
+
+            $this->queueManager->log(LogLevel::ERROR, "job {$job->getUUID()->toString()} has failed");
+            $this->queueManager->log(LogLevel::ERROR, $e->getTraceAsString());
+
+            // call the error method, then the failed method, for cleanup
+            $job->error($e);
             $job->failed($e);
         } finally {
             try {
+                $this->queueManager->log(
+                    LogLevel::INFO,
+                    "moving job {$job->getUUID()->toString()} to failed jobs list"
+                );
                 $this->failedJobProvider->log($job->getQueue(), $job, $e);
             } catch (\Exception $e) {
-                // NO-OP
+                $this->queueManager->log(
+                    LogLevel::ERROR,
+                    "error moving job {$job->getUUID()->toString()} to failed jobs list"
+                );
             }
 
             // TODO: trigger job failed event

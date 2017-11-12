@@ -16,9 +16,11 @@ use Dot\Queue\Console\Command\FlushFailedCommand;
 use Dot\Queue\Console\Command\ForgetFailedCommand;
 use Dot\Queue\Console\Command\ListFailedCommand;
 use Dot\Queue\Console\Command\JobsTableCommand;
+use Dot\Queue\Console\Command\RestartCommand;
 use Dot\Queue\Console\Command\RetryCommand;
 use Dot\Queue\Console\Factory\ConsumeCommandFactory;
 use Dot\Queue\Console\Factory\FailedCommandFactory;
+use Dot\Queue\Console\Factory\RestartCommandFactory;
 use Dot\Queue\Factory\AdapterManagerFactory;
 use Dot\Queue\Factory\ConsumerFactory;
 use Dot\Queue\Factory\DatabaseFailedJobProviderFactory;
@@ -62,6 +64,7 @@ class ConfigProvider
                 RetryCommand::class => FailedCommandFactory::class,
                 JobsTableCommand::class => InvokableFactory::class,
                 FailedTableCommand::class => InvokableFactory::class,
+                RestartCommand::class => RestartCommandFactory::class,
             ]
         ];
     }
@@ -87,6 +90,16 @@ class ConfigProvider
                         '--stop-on-empty' => 'Flag indicating the consumer to stop if queues are empty',
                     ],
                     'handler' => ConsumeCommand::class,
+                ],
+                [
+                    'name' => 'queue:restart',
+                    'route' => '[--queues=]',
+                    'short_description' => 'Restart all queues or optionally specified queues',
+                    'description' => 'Create high-priority restart jobs that will restart all or specified queues',
+                    'options_descriptions' => [
+                        '--queues' => 'Optional comma separated list of queue names to restart'
+                    ],
+                    'handler' => RestartCommand::class,
                 ],
                 [
                     'name' => 'queue:failed',

@@ -4,7 +4,7 @@ DotKernel queue component
 ## Requirements
 * PHP >= 7.1
 * zendframework/zend-servicemanager
-* zendframework/zend-db(optional - install if using the database adapter)
+* zendframework/zend-db (optional - install if using the database adapter)
 
 ## Installation
 Run the following command
@@ -12,7 +12,7 @@ Run the following command
 $ composer require dotkernel/dot-queue
 ```
 
-After installing all dependencies, add the `ConfigProvider::class` to your configuration aggregate, in order to register all dependencies and console commands.
+After installing all dependencies, add the `\Dot\Queue\ConfigProvider::class` to your configuration aggregate, in order to register all dependencies and console commands.
 
 ## Queues
 The following queue implementations are provided by this package
@@ -30,11 +30,13 @@ Queue adapters must implement `Dot\Queue\Adapter\AdapterInterface`
 
 ## Configuring queues
 At this moment, the package offers only a database adapter to be used with the persistent queue.
-Therefore, we'll give below the config template to configure a mysql database queue
+Therefore, the config template below shows how to configure a MySQL queue.
 
-Create a config file in your `config/autoload` folder, and replace the queue name with something appropriate
+Create a config file in your `config/autoload` folder, and replace the `{{QUEUE_NAME}}` with something appropriate
 ##### queue.global.php
 ```php
+<?php
+
 return [
     'dot_queue' => [
         'default_queue' => '{{QUEUE_NAME}}',
@@ -110,7 +112,7 @@ You can also inject the job class with the needed dependencies. Use a factory cl
 
 ## The QueueManager
 
-The `Dot\Queue\Queue\QueueManager` is the main class to be injected wherever you need dispatching jobs to queues.
+The `Dot\Queue\Queue\QueueManager` is the main class to be injected wherever you dispatch job to a queue.
 
 In order to create and dispatch a job
 ```php
@@ -130,10 +132,10 @@ $job->dispatch('queue_name');
 ```
 
 ### Important
-* When creating jobs, always use the queue manager's `->createJob(className)` method.
+* When creating jobs, always use the queue managers `->createJob(className)` method.
 This will make sure the job is fetched from the container and will be properly initialized.
 
-* In order to avoid serialization complication, we advice you to set only scalar or array data into the job's payload.
+* In order to avoid serialization complication, we advice you to set only scalar or array data into the jobs' payload.
 This should not represent a limitation, because you can inject services into the job, that can later fetch objects from database and so on...
 
 * Jobs already define some sane defaults for the max attempts, timeout and other job option. Override only what you need.
@@ -159,10 +161,11 @@ Useful consumer options
 * `--sleep=` - pause the queue for the specified amount of seconds(in case the queue is empty)
 Check the command's help for a full list of options
 
-In production, we advise you to use a monitoring software, such as `supervisor` in order to make sure that the consumer is kept alive.
+In production, we advise you to use a monitoring software, such as `supervisord` in order to make sure that the consumer is kept alive.
+During development you can emulate supervisord with the npm-package called `forever`
 
 ## Database migrations
-In order to generate migrations files(to be used by phinx library) for the jobs table and failed jobs table, 2 commands are provided
+In order to generate migrations files (to be used by Phinx library) for the jobs table and failed jobs table, two commands are provided
 * `$ php dot queue:jobs-table`
 * `$ php dot queue:failed-table`
 

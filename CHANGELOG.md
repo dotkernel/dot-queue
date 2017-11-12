@@ -1,3 +1,24 @@
+## 0.3.0 - 2017-11-12
+
+### Changed
+* updated table job uuid to use binary(16)
+* job uuid stored in an optimized binary value
+
+### Added
+* support for PSR3 logger
+* specialized restart job for signaling the queue to restart
+* queue console command to restart queues
+
+### Deprecated
+* Nothing
+
+### Removed
+* Nothing
+
+### Fixed
+* Nothing
+
+
 ## 0.2.1 - 2017-10-07
 
 ### Changed

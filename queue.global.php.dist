@@ -31,12 +31,15 @@ return [
                 // 'type' => \Dot\Queue\Queue\PersistentQueue::class,
                 'options' => [
                     'adapter' => 'database',
+
                     // after how many seconds, failed job will be attempted again
                     'retry_after' => 60,
-                    // maybe other queue options later
                 ]
             ],
             // other queues...
-        ]
+        ],
+
+        // psr3 logger
+        //'logger' => 'LoggerServiceName'
     ]
 ];

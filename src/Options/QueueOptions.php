@@ -29,6 +29,9 @@ class QueueOptions extends AbstractOptions
     /** @var  array */
     protected $failedJobProvider;
 
+    /** @var  string */
+    protected $logger;
+
     /**
      * QueueOptions constructor.
      * @param null $options
@@ -104,6 +107,24 @@ class QueueOptions extends AbstractOptions
     public function setFailedJobProvider(array $failedJobProvider): QueueOptions
     {
         $this->failedJobProvider = $failedJobProvider;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLogger()
+    {
+        return $this->logger;
+    }
+
+    /**
+     * @param string $logger
+     * @return QueueOptions
+     */
+    public function setLogger($logger): QueueOptions
+    {
+        $this->logger = $logger;
         return $this;
     }
 }
