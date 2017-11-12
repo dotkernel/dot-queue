@@ -9,13 +9,11 @@ declare(strict_types=1);
 
 namespace Dot\Queue\Queue;
 
-use Dot\Queue\Exception\InvalidArgumentException;
 use Dot\Queue\Exception\RuntimeException;
 use Dot\Queue\Factory\PersistentQueueFactory;
 use Dot\Queue\Job\JobInterface;
 use Dot\Queue\Options\QueueOptions;
 use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
 use Zend\ServiceManager\AbstractPluginManager;
 use Zend\ServiceManager\Factory\InvokableFactory;
 use Zend\ServiceManager\ServiceManager;
@@ -213,35 +211,14 @@ class QueueManager extends AbstractPluginManager
     /**
      * @param $level
      * @param string $message
+     * @param array $context
      */
-    public function log($level, string $message)
+    public function log($level, string $message, array $context = [])
     {
         if (!$this->logger) {
             return;
         }
 
-
-        $context = [
-            'DATETIME' => \date('Y-m-d H:i:s', \time()),
-            'LEVEL' => strtoupper($level),
-            'MESSAGE' => $message
-        ];
-        $this->logger->log($level, '[{DATETIME}] queues.{LEVEL}: {MESSAGE}', $context);
-    }
-
-    /**
-     * @param $exception
-     */
-    public function logException($exception)
-    {
-        if (!$this->logger) {
-            return;
-        }
-
-        if (!$exception instanceof \Exception && !$exception instanceof \Throwable) {
-            throw new InvalidArgumentException('logException expects an exception or throwable as parameter');
-        }
-
-        $this->log(LogLevel::ERROR, $exception->getTraceAsString());
+        $this->logger->log($level, $message, $context);
     }
 }

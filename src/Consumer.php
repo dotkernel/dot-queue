@@ -74,7 +74,7 @@ class Consumer
         $this->options = $options;
         $this->listenForSignals();
 
-        $this->queueManager->log(LogLevel::INFO, 'starting queue ' . $queue->getName());
+        $this->queueManager->log(LogLevel::INFO, sprintf('starting queue `%s`', $queue->getName()));
 
         $this->startTime = microtime(true);
         $this->processedJobs = 0;
@@ -82,7 +82,7 @@ class Consumer
             // NO-OP
         }
 
-        $this->queueManager->log(LogLevel::INFO, 'stopping queue ' . $queue->getName());
+        $this->queueManager->log(LogLevel::INFO, sprintf('stopping queue `%s`', $queue->getName()));
     }
 
     /**
@@ -107,7 +107,7 @@ class Consumer
         }
 
         if (!$job = $this->getNextJob($queue)) {
-            $this->queueManager->log(LogLevel::INFO, 'queue ' . $queue->getName() . ' is empty');
+            $this->queueManager->log(LogLevel::INFO, sprintf('queue `%s` is empty', $queue->getName()));
 
             if ($this->options->isStopOnEmpty()) {
                 return false;
@@ -175,7 +175,7 @@ class Consumer
     {
         $this->queueManager->log(
             LogLevel::INFO,
-            "starting job {$job->getUUID()->toString()}, queue {$queue->getName()}"
+            "starting job {$job->getUUID()->toString()} in queue {$queue->getName()}"
         );
 
         try {
@@ -217,8 +217,9 @@ class Consumer
     }
 
     /**
-     * @param $e
+     * @param \Exception|\Throwable $e
      * @param JobInterface $job
+     * @throws \Exception|\Throwable
      */
     protected function handleJobException($e, JobInterface $job)
     {
@@ -232,7 +233,7 @@ class Consumer
         }
 
         $this->queueManager->log(LogLevel::ERROR, "error in job {$job->getUUID()->toString()}");
-        $this->queueManager->logException($e);
+        $this->queueManager->log(LogLevel::ERROR, $e->getTraceAsString());
 
         // TODO: trigger job exception event
 
@@ -251,7 +252,7 @@ class Consumer
 
     /**
      * @param JobInterface $job
-     * @param $e
+     * @param \Exception|\Throwable $e
      */
     protected function handleJobFailed($e, JobInterface $job)
     {
@@ -262,7 +263,7 @@ class Consumer
             }
 
             $this->queueManager->log(LogLevel::ERROR, "job {$job->getUUID()->toString()} has failed");
-            $this->queueManager->logException($e);
+            $this->queueManager->log(LogLevel::ERROR, $e->getTraceAsString());
 
             // call the error method, then the failed method, for cleanup
             $job->error($e);
