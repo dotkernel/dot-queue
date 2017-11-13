@@ -1,3 +1,21 @@
+## 0.3.1 - 2017-11-13
+
+### Changed
+* Nothing
+
+### Added
+* Nothing
+
+### Deprecated
+* Nothing
+
+### Removed
+* Nothing
+
+### Fixed
+* Save complete job error message and stack trace
+
+
 ## 0.3.0 - 2017-11-12
 
 ### Changed
