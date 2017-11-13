@@ -233,15 +233,11 @@ class Consumer
     protected function handleJobException($e, JobInterface $job)
     {
         if ($job->getMaxAttempts() > 0 && $job->getAttempts() >= $job->getMaxAttempts()) {
-            $this->handleJobFailed(
-                new MaxAttemptsExceededException('Job exceeded its maximum attempts', $e),
-                $job
-            );
-
+            $this->handleJobFailed($e, $job);
             return;
         }
 
-        $this->queueManager->log(LogLevel::ERROR, "error in job {$job->getUUID()->toString()}");
+        $this->queueManager->log(LogLevel::ERROR, $e->getMessage(). " in job {$job->getUUID()->toString()}");
         $this->queueManager->log(LogLevel::ERROR, $e->getTraceAsString());
 
         // TODO: trigger job exception event
@@ -271,7 +267,10 @@ class Consumer
                 // call the failed method of the job for cleaning up
             }
 
-            $this->queueManager->log(LogLevel::ERROR, "job {$job->getUUID()->toString()} has failed");
+            $this->queueManager->log(
+                LogLevel::ERROR,
+                "job {$job->getUUID()->toString()} has failed with error " . $e->getMessage()
+            );
             $this->queueManager->log(LogLevel::ERROR, $e->getTraceAsString());
 
             // call the error method, then the failed method, for cleanup

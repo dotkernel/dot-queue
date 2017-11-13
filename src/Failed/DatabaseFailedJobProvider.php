@@ -73,7 +73,7 @@ class DatabaseFailedJobProvider implements FailedJobProviderInterface
             'uuid' => UuidOrderedTimeBinaryCodec::encode($job->getUUID()),
             'queue' => $job->getQueue()->getName(),
             'payload' => $queue->getQueueManager()->createPayload($job),
-            'exception' => $e->getTraceAsString(),
+            'exception' => $e->getMessage() . " in " . $e->getTraceAsString(),
             'failedAt' => time()
         ];
 
