@@ -106,7 +106,7 @@ class Consumer
             return true;
         }
 
-        if (!$job = $this->getNextJob($queue)) {
+        if (($job = $this->getNextJob($queue)) === null) {
             $this->queueManager->log(LogLevel::INFO, sprintf('queue `%s` is empty', $queue->getName()));
 
             if ($this->options->isStopOnEmpty()) {
@@ -336,9 +336,13 @@ class Consumer
             pcntl_signal(SIGALRM, function () {
                 $this->kill(1);
             });
-            pcntl_alarm(
-                max($job->getTimeout(), 0)
+
+            $this->queueManager->log(
+                LogLevel::DEBUG,
+                'Registering timeout handler for ' . $job->getTimeout() . ' seconds'
             );
+
+            pcntl_alarm($job->getTimeout());
         }
     }
 
@@ -381,6 +385,8 @@ class Consumer
      */
     public function kill($status = 0)
     {
+        $this->queueManager->log(LogLevel::WARNING, 'Killing queue due to timeout alarm');
+
         if (extension_loaded('posix')) {
             posix_kill(getmypid(), SIGKILL);
         }
