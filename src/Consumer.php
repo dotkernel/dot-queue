@@ -107,8 +107,6 @@ class Consumer
         }
 
         if (($job = $this->getNextJob($queue)) === null) {
-            $this->queueManager->log(LogLevel::INFO, sprintf('queue `%s` is empty', $queue->getName()));
-
             if ($this->options->isStopOnEmpty()) {
                 return false;
             }
