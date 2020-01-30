@@ -3,8 +3,8 @@ DotKernel queue component
 
 ## Requirements
 * PHP >= 7.1
-* zendframework/zend-servicemanager
-* zendframework/zend-db (optional - install if using the database adapter)
+* laminas/laminas-servicemanager
+* laminas/laminas-db (optional - install if using the database adapter)
 
 ## Installation
 Run the following command
@@ -24,7 +24,7 @@ Queues must implement `Dot\Queue\Queue\QueueInterface` or extend `Dot\Queue\Queu
 ## Queue adapters
 Queue adapters are used in collaboration with the `PersistentQueue`. Queue adapters are specific to the storage used
 Provided queue adapters:
-* `Dot\Queue\Adapter\DatabaseAdapter` - based on `zend-db`, enqueues/dequeues jobs using a MySql storage
+* `Dot\Queue\Adapter\DatabaseAdapter` - based on `laminas-db`, enqueues/dequeues jobs using a MySql storage
 
 Queue adapters must implement `Dot\Queue\Adapter\AdapterInterface`
 
@@ -53,7 +53,7 @@ return [
             'database' => [
                 'type' => \Dot\Queue\Adapter\DatabaseAdapter::class,
                 'options' => [
-                    // configured zend db service name adapter
+                    // configured laminas db service name adapter
                     'db_adapter' => 'database',
                     'table' => 'jobs',
                     'failed_table' => 'failed_jobs'

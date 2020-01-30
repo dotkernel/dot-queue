@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace Dot\Queue\Options;
 
-use Zend\Stdlib\AbstractOptions;
+use Laminas\Stdlib\AbstractOptions;
 
 /**
  * Class QueueOptions

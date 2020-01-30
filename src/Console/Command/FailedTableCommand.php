@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace Dot\Queue\Console\Command;
 
 use Dot\Console\Command\AbstractCommand;
-use Zend\Console\Adapter\AdapterInterface;
+use Laminas\Console\Adapter\AdapterInterface;
 use ZF\Console\Route;
 
 /**

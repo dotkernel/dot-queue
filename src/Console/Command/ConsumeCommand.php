@@ -14,7 +14,7 @@ use Dot\Queue\Consumer;
 use Dot\Queue\ConsumerOptions;
 use Dot\Queue\Queue\QueueInterface;
 use Dot\Queue\Queue\RoundRobinQueue;
-use Zend\Console\Adapter\AdapterInterface;
+use Laminas\Console\Adapter\AdapterInterface;
 use ZF\Console\Route;
 
 /**

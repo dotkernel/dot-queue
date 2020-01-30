@@ -29,7 +29,7 @@ use Dot\Queue\Factory\QueueOptionsFactory;
 use Dot\Queue\Failed\FailedJobProviderInterface;
 use Dot\Queue\Options\QueueOptions;
 use Dot\Queue\Queue\QueueManager;
-use Zend\ServiceManager\Factory\InvokableFactory;
+use Laminas\ServiceManager\Factory\InvokableFactory;
 
 /**
  * Class ConfigProvider

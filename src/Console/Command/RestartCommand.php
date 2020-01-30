@@ -12,7 +12,7 @@ namespace Dot\Queue\Console\Command;
 use Dot\Console\Command\AbstractCommand;
 use Dot\Queue\Job\RestartJob;
 use Dot\Queue\Queue\QueueManager;
-use Zend\Console\Adapter\AdapterInterface;
+use Laminas\Console\Adapter\AdapterInterface;
 use ZF\Console\Route;
 
 /**

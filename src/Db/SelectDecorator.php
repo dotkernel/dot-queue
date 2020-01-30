@@ -9,15 +9,15 @@ declare(strict_types=1);
 
 namespace Dot\Queue\Db;
 
-use Zend\Db\Adapter\Driver\DriverInterface;
-use Zend\Db\Adapter\ParameterContainer;
-use Zend\Db\Adapter\Platform\PlatformInterface;
+use Laminas\Db\Adapter\Driver\DriverInterface;
+use Laminas\Db\Adapter\ParameterContainer;
+use Laminas\Db\Adapter\Platform\PlatformInterface;
 
 /**
  * Class SelectDecorator
  * @package Dot\Queue\Db
  */
-class SelectDecorator extends \Zend\Db\Sql\Platform\Mysql\SelectDecorator
+class SelectDecorator extends \Laminas\Db\Sql\Platform\Mysql\SelectDecorator
 {
     /** @var null|bool  */
     protected $lockForUpdate = null;

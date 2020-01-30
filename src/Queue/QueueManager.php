@@ -14,9 +14,9 @@ use Dot\Queue\Factory\PersistentQueueFactory;
 use Dot\Queue\Job\JobInterface;
 use Dot\Queue\Options\QueueOptions;
 use Psr\Log\LoggerInterface;
-use Zend\ServiceManager\AbstractPluginManager;
-use Zend\ServiceManager\Factory\InvokableFactory;
-use Zend\ServiceManager\ServiceManager;
+use Laminas\ServiceManager\AbstractPluginManager;
+use Laminas\ServiceManager\Factory\InvokableFactory;
+use Laminas\ServiceManager\ServiceManager;
 
 /**
  * Class QueueManager

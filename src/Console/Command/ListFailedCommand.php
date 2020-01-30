@@ -11,7 +11,7 @@ namespace Dot\Queue\Console\Command;
 
 use Dot\Queue\Job\JobInterface;
 use LucidFrame\Console\ConsoleTable;
-use Zend\Console\Adapter\AdapterInterface;
+use Laminas\Console\Adapter\AdapterInterface;
 use ZF\Console\Route;
 
 /**

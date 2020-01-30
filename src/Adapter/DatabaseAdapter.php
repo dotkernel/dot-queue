@@ -13,11 +13,11 @@ use Dot\Queue\Db\SelectDecorator;
 use Dot\Queue\Job\JobInterface;
 use Dot\Queue\Queue\QueueInterface;
 use Dot\Queue\UuidOrderedTimeBinaryCodec;
-use Zend\Db\Adapter\Adapter;
-use Zend\Db\Sql\Expression;
-use Zend\Db\Sql\Select;
-use Zend\Db\Sql\Sql;
-use Zend\Db\Sql\Where;
+use Laminas\Db\Adapter\Adapter;
+use Laminas\Db\Sql\Expression;
+use Laminas\Db\Sql\Select;
+use Laminas\Db\Sql\Sql;
+use Laminas\Db\Sql\Where;
 
 /**
  * Class DatabaseAdapter
@@ -55,7 +55,7 @@ class DatabaseAdapter extends AbstractAdapter
     protected function validate()
     {
         if (!$this->dbAdapter instanceof Adapter) {
-            throw new \RuntimeException('Database queue adapter required a valid Zend\Db adapter');
+            throw new \RuntimeException('Database queue adapter required a valid Laminas\Db adapter');
         }
     }
 

@@ -12,7 +12,7 @@ namespace Dot\Queue\Adapter;
 use Dot\Queue\Exception\RuntimeException;
 use Dot\Queue\Factory\DatabaseAdapterFactory;
 use Dot\Queue\Options\QueueOptions;
-use Zend\ServiceManager\AbstractPluginManager;
+use Laminas\ServiceManager\AbstractPluginManager;
 
 /**
  * Class AdapterManager

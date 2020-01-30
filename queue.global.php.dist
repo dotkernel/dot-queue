@@ -16,7 +16,7 @@ return [
             'database' => [
                 'type' => \Dot\Queue\Adapter\DatabaseAdapter::class,
                 'options' => [
-                    // configured zend db service name adapter
+                    // configured laminas db service name adapter
                     'db_adapter' => 'database',
                     'table' => 'jobs',
                     'failed_table' => 'failed_jobs'

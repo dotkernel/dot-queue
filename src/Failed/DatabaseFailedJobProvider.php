@@ -14,9 +14,9 @@ use Dot\Queue\Job\JobInterface;
 use Dot\Queue\Queue\QueueInterface;
 use Dot\Queue\Queue\QueueManager;
 use Dot\Queue\UuidOrderedTimeBinaryCodec;
-use Zend\Db\Adapter\Adapter;
-use Zend\Db\ResultSet\ResultSet;
-use Zend\Db\Sql\Sql;
+use Laminas\Db\Adapter\Adapter;
+use Laminas\Db\ResultSet\ResultSet;
+use Laminas\Db\Sql\Sql;
 
 /**
  * Class DatabaseFailedJobProvider
