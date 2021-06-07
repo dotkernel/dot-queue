@@ -1,4 +1,8 @@
 # dot-queue
+
+![OSS Lifecycle](https://img.shields.io/osslifecycle/dotkernel/dot-queue)
+[![GitHub license](https://img.shields.io/github/license/dotkernel/dot-queue)](https://github.com/dotkernel/dot-queue/LICENSE)
+
 DotKernel queue component
 
 ## Requirements
