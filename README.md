@@ -5,6 +5,11 @@
 
 DotKernel queue component
 
+##Note
+**dot-queue** is **abandoned** and will receive no further development!
+
+We recommend using [dotkernel/dot-cli](https://github.com/dotkernel/dot-cli).
+
 ## Requirements
 * PHP >= 7.1
 * zendframework/zend-servicemanager
