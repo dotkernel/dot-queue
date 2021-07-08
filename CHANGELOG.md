@@ -1,3 +1,21 @@
+## 0.3.2 - 2021-07-07
+
+### Changed
+* Nothing
+
+### Added
+* OSSMETADATA
+
+### Deprecated
+* Everything
+
+### Removed
+* Nothing
+
+### Fixed
+* Nothing
+
+
 ## 0.3.1 - 2017-11-13
 
 ### Changed
